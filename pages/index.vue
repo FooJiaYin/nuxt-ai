@@ -6,7 +6,7 @@
         <p><i>"Display a joke with the color of sky"</i></p>
         <v-textarea class="mt-4" label="Insert prompt here" v-model="input" variant="outlined" clearable></v-textarea>
         <v-btn class="mb-3" @click="getResponse">Get Response</v-btn>
-        <p>{{ response }}</p>
+        <p :class="colorClass">{{ response }}</p>
     </v-container>
 </template>
 
@@ -14,9 +14,17 @@
 const store = useStore();
 const input = ref("");
 const response = ref("");
+const colorClass = ref([]);
 
 async function getResponse() {
     const res = await store.getOpenAIResponse(input.value);
-    response.value = res;
+    if (res.function_call?.name == "displayColoredMessage") {
+        const {color, message} = res.function_call.arguments;
+        colorClass.value = ["text-" + color]
+        response.value = message;
+    } else {
+        colorClass.value = [];
+        response.value = res.content;
+    }
 }
 </script>
