@@ -7,6 +7,7 @@
         <v-textarea class="mt-4" label="Insert prompt here" v-model="input" variant="outlined" clearable></v-textarea>
         <v-btn class="mb-3" @click="getResponse">Get Response</v-btn>
         <p :class="colorClass">{{ response }}</p>
+        <Messages :messages="messages" />
     </v-container>
 </template>
 
@@ -14,6 +15,7 @@
 const store = useStore();
 const input = ref("");
 const response = ref("");
+const messages = ref([]);
 const colorClass = ref([]);
 
 async function getResponse() {
@@ -26,5 +28,6 @@ async function getResponse() {
         colorClass.value = [];
         response.value = res.content;
     }
+    messages.value = res.messages;
 }
 </script>
