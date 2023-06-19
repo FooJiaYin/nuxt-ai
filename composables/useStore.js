@@ -8,7 +8,7 @@ export const useStore = defineStore('store', {
 		async getOpenAIResponse(input) {
 			try {
 				const response = await $fetch('/api/chat', { 
-					method: 'POST', body: JSON.stringify({ n: 2, prompt: input }) 
+					method: 'POST', body: JSON.stringify({ prompt: input }) 
 				})
 				return response;
 			} catch (error) {
