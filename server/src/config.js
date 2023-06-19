@@ -1,5 +1,6 @@
-const defaultConfig = {
-    model: "gpt-3.5-turbo",
+const defaultParams = {
+    // TODO: `gpt-3.5-turbo-0613` will be deprecated 3 months after `gpt-3.5-turbo-0301` is replaced
+    model: "gpt-3.5-turbo-0613",
     messages: [],
     temperature: 0.0,
     max_tokens: 1000,
@@ -8,4 +9,4 @@ const defaultConfig = {
     presence_penalty: 0
 };
 
-export default defaultConfig;
+export default defaultParams;
