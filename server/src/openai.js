@@ -22,7 +22,7 @@ const openai = new OpenAIApi(configuration);
  * Please refer to the [OpenAI API documentation](https://beta.openai.com/docs/api-reference/create-completion) for more information
  * @returns {object} - The response from the API, in the format {content: "Hello", usage: 0.123, function_call: {name: "getUserInfo", arguments: {}}, messages}
  */
-export async function getResponse({
+export async function getOpenAIResponse({
     prompt = "",
     messages = [],
     ...request
@@ -30,38 +30,39 @@ export async function getResponse({
     if (prompt.length > 0) {
         messages.push({ role: "user", content: prompt });
     }
+    let completion;
     try {
-        const completion = await openai.createChatCompletion({
+        completion = await openai.createChatCompletion({
             ...defaultParams,
             ...request,
             messages: messages,
         });
-        const message = completion.data.choices[0].message;
-        let response = {
-            content: message.content,
-            usage: completion.data.usage,
-            messages: [...messages, message],
-        };
-
-        if (message.function_call) {
-            try {
-                response["function_call"] = {
-                    ...message.function_call,
-                    arguments: JSON.parse(message.function_call.arguments),
-                };
-                response = await handleFunctionCall(response, request);
-            } catch (e) {
-                return {
-                    error: "Error parsing function call arguments",
-                    ...response,
-                };
-            }
-        }
-        return response;
-    } catch (e) {
-        console.error(e);
-        return { error: e };
+    } catch (error) {
+        error.message = `Error getting response from OpenAI API: ${error.message}`;
+        throw error;
     }
+
+    const message = completion.data.choices[0].message;
+    let response = {
+        content: message.content,
+        usage: completion.data.usage,
+        messages: [...messages, message],
+    };
+
+    if (message.function_call) {
+        try {
+            response["function_call"] = {
+                ...message.function_call,
+                arguments: JSON.parse(message.function_call.arguments),
+            };
+            response = await handleFunctionCall(response, request);
+        } catch (error) {
+            error.message = `Error parsing function call arguments: ${error.message}. The response length may exceeds the max_tokens.`;
+            error.arguments = message.function_call.arguments;
+            throw error;
+        }
+    }
+    return response;
 }
 
 /** Recursively handle function calls in the response */
@@ -71,7 +72,7 @@ async function handleFunctionCall(response, request) {
 
     let result;
     // Call the function if it is a server-side function
-    if (name in functions && functions[name].function) 
+    if (name in functions && functions[name].function)
         result = functions[name].function(args);
     if (result instanceof Promise) result = await result;
 
@@ -81,7 +82,7 @@ async function handleFunctionCall(response, request) {
             ...response.messages,
             { role: "function", "content": JSON.stringify(result), "name": response.function_call.name }
         ];
-        response = await getResponse({
+        response = await getOpenAIResponse({
             ...request,
             prompt: "",
             messages: messages,

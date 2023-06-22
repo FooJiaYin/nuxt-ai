@@ -1,4 +1,4 @@
-import { getResponse } from "../src/openai";
+import { getOpenAIResponse } from "../src/openai";
 import { functionsInfo } from "../src/functions";
 
 export default defineEventHandler(async (event) => {
@@ -12,6 +12,11 @@ export default defineEventHandler(async (event) => {
         function_call: "auto",
         ...request
     };
-    let response = await getResponse(request);
-    return response;
+    try {
+        const response = await getOpenAIResponse(request);
+        return response;
+    } catch (error) {
+        console.error("error", error);
+        throw error
+    }
 });
