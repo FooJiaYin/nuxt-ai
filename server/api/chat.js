@@ -12,6 +12,11 @@ export default defineEventHandler(async (event) => {
         function_call: "auto",
         ...request
     };
-    let response = await getOpenAIResponse(request);
-    return response;
+    try {
+        const response = await getOpenAIResponse(request);
+        return response;
+    } catch (error) {
+        console.error("error", error);
+        throw error
+    }
 });
