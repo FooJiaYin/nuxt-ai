@@ -1,21 +1,22 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 
 export const useStore = defineStore('store', {
-    state: () => {
-        return {
+	state: () => {
+		return {
 			messages: [],
 		};
-    },
+	},
 	actions: {
 		async getOpenAIResponse(input) {
 			try {
-				const response = await $fetch('/api/chat', { 
-					method: 'POST', body: JSON.stringify({ messages: this.messages, prompt: input }) 
+				const response = await $fetch('/api/chat', {
+					method: 'POST', body: JSON.stringify({ messages: this.messages, prompt: input })
 				});
 				this.messages = response.messages;
 				return response;
 			} catch (error) {
-				console.error(error);
+				error.message = error.data?.message || error.message;
+				throw error;
 			}
 		},
 	},

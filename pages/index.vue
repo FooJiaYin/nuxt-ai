@@ -31,15 +31,21 @@ const messages = ref([]);
 const colorClass = ref([]);
 
 async function getResponse() {
-    const res = await store.getOpenAIResponse(input.value);
-    if (res.function_call?.name == "displayColoredMessage") {
-        const { color, message } = res.function_call.arguments;
-        colorClass.value = ["text-" + color];
-        response.value = message;
-    } else {
-        colorClass.value = [];
-        response.value = res.content;
+    try {
+        const res = await store.getOpenAIResponse(input.value);
+        if (res.function_call?.name == "displayColoredMessage") {
+            const { color, message } = res.function_call.arguments;
+            colorClass.value = ["text-" + color];
+            response.value = message;
+        } else {
+            colorClass.value = [];
+            response.value = res.content;
+        }
+        messages.value = res.messages;
+    } catch (error) {
+        colorClass.value = ["text-error"];
+        console.error(error.message);
+        response.value = error.message;
     }
-    messages.value = res.messages;
 }
 </script>
